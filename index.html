@@ -1,305 +1,1941 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <title>🧼 유출 방지 세탁소</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root {
-      --bg-color: #f8f9fa; --text-color: #212529; --border-color: #dee2e6;
-      --section-bg: #ffffff; --btn-bg: #e9ecef; --btn-hover-bg: #dee2e6;
-      --accent-btn-bg: #228be6; --accent-btn-hover-bg: #1c7ed6;
-      --danger-btn-bg: #fa5252; --danger-btn-hover-bg: #e03131;
-    }
-    body.dark {
-      --bg-color: #121212; --text-color: #e9ecef; --border-color: #343a40;
-      --section-bg: #1e1e1e; --btn-bg: #343a40; --btn-hover-bg: #495057;
-    }
-    body {
-      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      margin: 0; padding: 20px;
-      background-color: var(--bg-color); color: var(--text-color);
-      display: flex; justify-content: center; align-items: flex-start;
-      min-height: 100vh;
-      box-sizing: border-box;
-    }
-    .container {
-      width: 100%;
-      max-width: 800px;
-      background-color: var(--section-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 30px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-    h1 { text-align: center; margin-top: 0; }
-    p { color: var(--key-color, #868e96); line-height: 1.6; text-align: center; }
-    .upload-box {
-      border: 2px dashed var(--border-color);
-      border-radius: 8px;
-      padding: 40px 20px;
-      margin: 30px 0;
-      cursor: pointer;
-      transition: background-color 0.2s, border-color 0.2s;
-      text-align: center;
-    }
-    .upload-box:hover, .upload-box.dragover {
-      background-color: var(--bg-color);
-      border-color: var(--accent-btn-bg);
-    }
-    #file-input { display: none; }
-    #image-preview { max-width: 100%; max-height: 300px; border-radius: 8px; margin-top: 15px; }
-    .metadata-area {
-      margin-top: 20px;
-      background-color: var(--bg-color);
-      padding: 15px;
-      border-radius: 8px;
-      font-family: 'D2Coding', 'Consolas', monospace;
-      white-space: pre-wrap;
-      word-break: break-all;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-    .control-group { display: flex; flex-direction: column; gap: 10px; }
-    textarea {
-        width: 100%; box-sizing: border-box; padding: 10px; font-size: 0.9rem;
-        border: 1px solid var(--border-color); border-radius: 8px;
-        background-color: var(--input-bg, #fff); color: inherit; min-height: 80px; resize: vertical;
-    }
-    button {
-      border: none; padding: 12px 20px; border-radius: 8px; font-size: 1rem;
-      font-weight: 600; cursor: pointer; transition: background-color 0.2s;
-      background-color: var(--btn-bg); color: var(--text-color);
-    }
-    button.primary { background-color: var(--accent-btn-bg); color: #fff; }
-    button.danger { background-color: var(--danger-btn-bg); color: #fff; }
-    button:disabled { cursor: not-allowed; opacity: 0.6; }
-    .toggle-dark-mode { position: fixed; top: 20px; right: 20px; }
-  </style>
-</head>
-<body>
-  <button id="toggleDarkBtn" class="toggle-dark-mode">🌗</button>
-  <div class="container">
-    <h1>🧼 유출 방지 세탁소</h1>
-    <p>NovelAI 이미지의 메타데이터를 확인하고, 안전하게 제거하거나 수정합니다.</p>
-    
-    <div id="upload-box" class="upload-box">
-      <label for="file-input">
-        <span id="upload-text">🖼️ 이미지 파일 선택 (.png)</span>
-        <div id="image-preview-container"></div>
-      </label>
-    </div>
-    <input type="file" id="file-input" accept="image/png">
-    
-    <div id="result-area" style="display: none;">
-      <h3>📋 원본 메타데이터</h3>
-      <div id="metadata-display" class="metadata-area"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>💬 채팅 캡처기 V13</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Sans+KR:wght@400;700&family=Nanum+Gothic:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Noto+Serif+KR:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
 
-      <div class="controls">
-        <div class="control-group">
-            <h3>덮어쓰기 & 워터마크</h3>
-            <textarea id="new-metadata" placeholder="여기에 새로운 메타데이터나 워터마크 문구를 입력하세요. (예: 유출 금지)"></textarea>
-            <button id="overwrite-btn" class="primary">덮어쓰기 & 다운로드</button>
-            <button id="watermark-btn" class="primary">워터마크 추가 & 다운로드</button>
+      :root {
+        --bg-color: #f3f4f6;
+        --panel-bg: #ffffff;
+        --input-bg: #f9fafb;
+        --border: #e5e7eb;
+        --text-main: #1f2937;
+        --text-sub: #6b7280;
+        --accent: #3b82f6;
+        --shadow: rgba(0, 0, 0, 0.05);
+        --bubble-font-size: 15px;
+        --bubble-max-width: 90%;
+        --bubble-font-family:
+          -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      }
+
+      body {
+        font-family:
+          -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+        background-color: var(--bg-color);
+        margin: 0;
+        display: flex;
+        height: 100vh;
+        color: var(--text-main);
+        overflow: hidden;
+      }
+
+      @media (max-width: 768px) {
+        body {
+          flex-direction: column;
+          overflow: auto;
+          height: auto;
+        }
+        .editor-panel {
+          width: 100% !important;
+          height: auto;
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+        }
+        .preview-panel {
+          height: 100vh;
+        }
+      }
+
+      .editor-panel {
+        width: 420px;
+        background-color: var(--panel-bg);
+        padding: 25px;
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        flex-shrink: 0;
+        gap: 15px;
+        box-shadow: 4px 0 15px var(--shadow);
+        z-index: 10;
+      }
+
+      /* Expanded textarea mode */
+      .editor-expanded .editor-hideable {
+        display: none !important;
+      }
+      .editor-expanded textarea {
+        flex: 1;
+        height: auto !important;
+        min-height: 300px;
+      }
+      .editor-expanded .textarea-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Expand button */
+      .textarea-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+      .textarea-header label {
+        margin-bottom: 0;
+        white-space: nowrap;
+      }
+      .btn-expand {
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        color: var(--text-sub);
+        padding: 4px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        font-weight: 600;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .btn-expand:hover {
+        background: var(--border);
+      }
+      .textarea-section .syntax-hint {
+        margin-top: 0;
+        margin-bottom: 8px;
+      }
+
+      .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 5px;
+      }
+      .title-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .btn-bread {
+        background-color: #fff7ed;
+        border: 1px solid #ffedd5;
+        color: var(--text-main);
+        font-size: 1rem;
+        padding: 4px 7px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+      }
+      .btn-bread:hover {
+        background-color: #ffedd5;
+        transform: translateY(-2px);
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+
+      /* 장문 모드 컬러칩 그룹 */
+      .longform-group {
+        display: flex;
+        align-items: center;
+      }
+      /* 컬러칩 — 뷰어 우측 상단 플로팅 */
+      .longform-chips {
+        display: none;
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        z-index: 10;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255,255,255,0.82);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 20px;
+        padding: 5px 11px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+      }
+      .longform-chips.visible {
+        display: flex;
+      }
+      .chip {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: transform 0.15s, border-color 0.15s;
+        flex-shrink: 0;
+      }
+      .chip:hover { transform: scale(1.25); }
+      .chip.selected { border-color: #334155; transform: scale(1.15); }
+
+      .btn-icon {
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        color: var(--text-sub);
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: 0.2s;
+      }
+      .btn-icon:hover {
+        background: var(--border);
+      }
+      .btn-icon.active {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 1rem;
+        color: var(--text-main);
+        font-weight: 700;
+        letter-spacing: -0.3px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      h2 .ver-badge {
+        font-size: 0.65rem;
+        font-weight: 600;
+        color: var(--text-sub);
+        background: var(--border);
+        padding: 1px 5px;
+        border-radius: 4px;
+        letter-spacing: 0;
+        margin-top: 1px;
+      }
+      label {
+        font-size: 0.85rem;
+        color: var(--text-sub);
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+
+      select,
+      input,
+      textarea {
+        width: 100%;
+        padding: 12px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        color: var(--text-main);
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+      }
+      textarea {
+        resize: none;
+        line-height: 1.6;
+        font-family: -apple-system, "Apple SD Gothic Neo", sans-serif;
+        height: 300px;
+        color: var(--text-main);
+      }
+      textarea::placeholder {
+        color: #9ca3af;
+        font-style: italic;
+      }
+      textarea:focus,
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: var(--panel-bg);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+      }
+
+      .keyword-group {
+        background: #f8fafc;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+      .keyword-row {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 8px;
+        align-items: center;
+      }
+      .keyword-row input {
+        padding: 8px;
+        font-size: 0.9rem;
+        background: #fff;
+      }
+
+      .btn-small {
+        padding: 8px 12px;
+        background: #94a3b8;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        white-space: nowrap;
+        transition: 0.2s;
+      }
+      .btn-small:hover {
+        background: #64748b;
+      }
+
+      .btn-add {
+        background: #fff;
+        border: 1px dashed #cbd5e1;
+        color: #64748b;
+        width: 100%;
+        margin-top: 5px;
+        transition: 0.2s;
+      }
+      .btn-add:hover {
+        background: #f1f5f9;
+        border-color: #94a3b8;
+      }
+      .btn-remove {
+        background: #ef4444;
+        color: white;
+      }
+
+      .helper-bar {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 5px;
+        flex-wrap: wrap;
+      }
+      .helper-bar button {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        color: #2563eb;
+        padding: 6px 12px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 700;
+        transition: 0.2s;
+      }
+      .helper-bar button:hover {
+        background: #dbeafe;
+        transform: translateY(-1px);
+      }
+
+      /* Settings */
+      .settings-group {
+        background: #f8fafc;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .setting-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .setting-row label {
+        margin-bottom: 0;
+        flex-shrink: 0;
+        min-width: 80px;
+      }
+      .setting-row input[type="range"] {
+        flex: 1;
+        padding: 0;
+        height: 6px;
+        -webkit-appearance: none;
+        appearance: none;
+        background: var(--border);
+        border: none;
+        border-radius: 3px;
+        outline: none;
+      }
+      .setting-row input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+      }
+      .setting-value {
+        font-size: 0.8rem;
+        color: var(--text-sub);
+        min-width: 40px;
+        text-align: right;
+        font-weight: 600;
+      }
+      .setting-row select {
+        width: auto;
+        flex: 1;
+        padding: 8px;
+        font-size: 0.85rem;
+      }
+
+      /* Toggle switch */
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .toggle-row label {
+        margin-bottom: 0;
+      }
+      .toggle-switch {
+        position: relative;
+        width: 44px;
+        height: 24px;
+        flex-shrink: 0;
+      }
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #cbd5e1;
+        border-radius: 24px;
+        transition: 0.3s;
+      }
+      .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        border-radius: 50%;
+        transition: 0.3s;
+      }
+      .toggle-switch input:checked + .toggle-slider {
+        background-color: var(--accent);
+      }
+      .toggle-switch input:checked + .toggle-slider:before {
+        transform: translateX(20px);
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 10px;
+        margin-top: auto;
+        padding-top: 20px;
+      }
+      .btn-main {
+        padding: 14px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1rem;
+        flex: 1;
+        transition: 0.2s;
+        color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      }
+      .btn-save {
+        background-color: var(--accent);
+      }
+      .btn-save:hover {
+        background-color: #2563eb;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(37, 99, 235, 0.2);
+      }
+
+      .preview-panel {
+        flex: 1;
+        background-color: #e5e7eb;
+        overflow-y: auto;
+        display: flex;
+        padding: 40px;
+        position: relative;
+      }
+
+      /* ── 장문 모드 (이북 리더기 / 세피아) ── */
+      .preview-panel.longform-mode {
+        background-color: #e8e0d0;
+      }
+      .preview-panel.longform-mode #capture-area {
+        max-width: 660px;
+        background: #f4efe6;
+        padding: 56px 52px;
+        box-shadow: 0 6px 32px rgba(61,43,31,0.13);
+        border-radius: 3px;
+      }
+      .preview-panel.longform-mode .chat-content {
+        gap: 0;
+      }
+      .preview-panel.longform-mode .msg-row {
+        max-width: 100%;
+        cursor: pointer;
+        transition: none;
+      }
+      .preview-panel.longform-mode .msg-row:active {
+        transform: none;
+      }
+      .preview-panel.longform-mode .msg-row:hover::after {
+        display: none;
+      }
+      .preview-panel.longform-mode .msg-row.me,
+      .preview-panel.longform-mode .msg-row.other {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .preview-panel.longform-mode .divider-row {
+        margin: 2.4em 0;
+      }
+      /* 화자 구분 — 단락 배경색 (inline style로 주입, CSS는 폴백용) */
+      body .preview-panel.longform-mode .msg-row.other .bubble {
+        border: none !important;
+        background: transparent !important;
+        padding: 2px 0 !important;
+        text-indent: 1em !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        font-weight: 400 !important;
+        line-height: 1.9 !important;
+        margin-bottom: 0.8em !important;
+      }
+      body .preview-panel.longform-mode .msg-row.me .bubble {
+        border: none !important;
+        border-left: 2px solid rgba(61,43,31,0.32) !important;
+        background: transparent !important;
+        padding: 2px 0 2px 14px !important;
+        text-indent: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        font-weight: 400 !important;
+        line-height: 1.9 !important;
+        margin-bottom: 0.8em !important;
+      }
+      /* 장문 모드 버튼 활성 상태 */
+      .btn-longform.active {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+      }
+
+      #capture-area {
+        width: 100%;
+        max-width: 420px;
+        margin: auto;
+        min-height: 600px;
+        display: flex;
+        flex-direction: column;
+        padding: 30px 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        transition: background 0.3s;
+        background-color: #fff;
+      }
+      .chat-content {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .msg-row {
+        display: flex;
+        flex-direction: column;
+        max-width: 100%;
+        cursor: pointer;
+        position: relative;
+        transition: transform 0.1s;
+      }
+      .msg-row:active {
+        transform: scale(0.98);
+      }
+      .msg-row:hover::after {
+        content: "↔ Click to switch";
+        position: absolute;
+        top: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: #fff;
+        font-size: 0.7rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+        pointer-events: none;
+        opacity: 0.8;
+        white-space: nowrap;
+      }
+
+      .bubble {
+        padding: 12px 18px;
+        border-radius: 18px;
+        font-size: var(--bubble-font-size, 15px);
+        line-height: 1.6;
+        word-break: break-all;
+        max-width: var(--bubble-max-width, 90%);
+        white-space: pre-wrap;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+        font-family: var(--bubble-font-family);
+      }
+      .bubble .dialogue {
+        font-weight: 700;
+      }
+      .bubble .italic-text {
+        font-style: italic;
+      }
+
+      .divider-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 0;
+        gap: 12px;
+      }
+      .divider-row .divider-line {
+        flex: 1;
+        height: 1px;
+        background: rgba(128, 128, 128, 0.25);
+      }
+      .divider-row .divider-dot {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: rgba(128, 128, 128, 0.35);
+      }
+
+      .syntax-hint {
+        font-size: 0.75rem;
+        color: var(--text-sub);
+        margin-top: -8px;
+        line-height: 1.5;
+        padding: 8px 10px;
+        background: var(--input-bg);
+        border-radius: 6px;
+        border: 1px solid var(--border);
+      }
+      .syntax-hint code {
+        background: var(--border);
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-family: monospace;
+        font-size: 0.75rem;
+      }
+
+      .collapsible-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        user-select: none;
+        padding: 4px 0;
+      }
+      .collapsible-header:hover label {
+        color: var(--accent);
+      }
+      .collapsible-header .arrow {
+        font-size: 0.7rem;
+        color: var(--text-sub);
+        transition: transform 0.2s;
+      }
+      .collapsible-header .arrow.open {
+        transform: rotate(180deg);
+      }
+      .collapsible-body {
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+      }
+      .collapsible-body.collapsed {
+        max-height: 0 !important;
+      }
+
+      /* ========== THEMES ========== */
+
+      /* 1. KakaoTalk */
+      .theme-kakao #capture-area {
+        background: #bacee0;
+      }
+      .theme-kakao .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-kakao .msg-row.other .bubble {
+        background: #ffffff;
+        color: #000;
+        border-top-left-radius: 4px;
+      }
+      .theme-kakao .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-kakao .msg-row.me .bubble {
+        background: #ffeb33;
+        color: #000;
+        border-top-right-radius: 4px;
+      }
+      .theme-kakao .divider-line {
+        background: rgba(0, 0, 0, 0.12);
+      }
+      .theme-kakao .divider-dot {
+        background: rgba(0, 0, 0, 0.2);
+      }
+
+      /* 2. iMessage */
+      .theme-imessage #capture-area {
+        background: #ffffff;
+      }
+      .theme-imessage .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-imessage .msg-row.other .bubble {
+        background: #e5e5ea;
+        color: #000;
+        border-bottom-left-radius: 4px;
+      }
+      .theme-imessage .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-imessage .msg-row.me .bubble {
+        background: #007aff;
+        color: #fff;
+        border-bottom-right-radius: 4px;
+      }
+
+      /* 3. Telegram */
+      .theme-telegram #capture-area {
+        background: #85a2b6;
+      }
+      .theme-telegram .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-telegram .msg-row.other .bubble {
+        background: #ffffff;
+        color: #000;
+        border-bottom-left-radius: 0;
+      }
+      .theme-telegram .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-telegram .msg-row.me .bubble {
+        background: #e3feb6;
+        color: #000;
+        border-bottom-right-radius: 0;
+      }
+
+      /* 4. LINE */
+      .theme-line #capture-area {
+        background: #92b7ce;
+      }
+      .theme-line .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-line .msg-row.other .bubble {
+        background: #ffffff;
+        color: #000;
+        border-top-left-radius: 0;
+      }
+      .theme-line .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-line .msg-row.me .bubble {
+        background: #86ea65;
+        color: #000;
+        border-top-right-radius: 0;
+      }
+
+      /* 5. WhatsApp */
+      .theme-whatsapp #capture-area {
+        background: #efeae2;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c8c2b9' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      }
+      .theme-whatsapp .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-whatsapp .msg-row.other .bubble {
+        background: #ffffff;
+        color: #111b21;
+        border-top-left-radius: 0;
+      }
+      .theme-whatsapp .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-whatsapp .msg-row.me .bubble {
+        background: #d9fdd3;
+        color: #111b21;
+        border-top-right-radius: 0;
+      }
+
+      /* 6. X / Twitter */
+      .theme-x #capture-area {
+        background: #000000;
+      }
+      .theme-x .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-x .msg-row.other .bubble {
+        background: #2f3336;
+        color: #e7e9ea;
+        border-radius: 20px;
+      }
+      .theme-x .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-x .msg-row.me .bubble {
+        background: #1d9bf0;
+        color: #fff;
+        border-radius: 20px;
+      }
+      .theme-x .divider-line {
+        background: rgba(255, 255, 255, 0.12);
+      }
+      .theme-x .divider-dot {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      /* 7. Daum Cafe */
+      .theme-daum #capture-area {
+        background: #ffffff;
+      }
+      .theme-daum .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-daum .msg-row.other .bubble {
+        background: #f0f0f0;
+        color: #000;
+        border-top-left-radius: 0;
+      }
+      .theme-daum .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-daum .msg-row.me .bubble {
+        background: #d92525;
+        color: #fff;
+        border-top-right-radius: 0;
+      }
+
+      /* 8. Reddit */
+      .theme-reddit #capture-area {
+        background: #ffffff;
+      }
+      .theme-reddit .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-reddit .msg-row.other .bubble {
+        background: #dae0e6;
+        color: #000;
+        border-radius: 20px;
+      }
+      .theme-reddit .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-reddit .msg-row.me .bubble {
+        background: #ff4500;
+        color: #fff;
+        border-radius: 20px;
+      }
+
+      /* 9. Google */
+      .theme-google #capture-area {
+        background: #fffbf5;
+      }
+      .theme-google .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-google .msg-row.other .bubble {
+        background: #f2f2f2;
+        color: #1f1f1f;
+        border-radius: 24px;
+      }
+      .theme-google .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-google .msg-row.me .bubble {
+        background: #d3e3fd;
+        color: #041e49;
+        border-radius: 24px;
+      }
+
+      /* 10. Slack */
+      .theme-slack #capture-area {
+        background: #ffffff;
+      }
+      .theme-slack .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-slack .msg-row.other .bubble {
+        background: #f8f8f8;
+        color: #1d1c1d;
+        border-radius: 4px;
+        border-left: 3px solid #e8912d;
+      }
+      .theme-slack .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-slack .msg-row.me .bubble {
+        background: #1264a3;
+        color: #fff;
+        border-radius: 4px;
+      }
+
+      /* 11. Instagram DM */
+      .theme-instagram #capture-area {
+        background: #ffffff;
+      }
+      .theme-instagram .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-instagram .msg-row.other .bubble {
+        background: #efefef;
+        color: #262626;
+        border-radius: 22px;
+      }
+      .theme-instagram .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-instagram .msg-row.me .bubble {
+        background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+        color: #fff;
+        border-radius: 22px;
+      }
+
+      /* 12. Gemini */
+      .theme-gemini #capture-area {
+        background: #ffffff;
+      }
+      .theme-gemini .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-gemini .msg-row.other .bubble {
+        background: #f0f4f9;
+        color: #1e1f20;
+        border-top-left-radius: 4px;
+      }
+      .theme-gemini .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-gemini .msg-row.me .bubble {
+        background: linear-gradient(135deg, #4b90ff 0%, #ff5546 100%);
+        color: #fff;
+        border-top-right-radius: 4px;
+      }
+
+      /* 13. ChatGPT */
+      .theme-chatgpt #capture-area {
+        background: #ffffff;
+      }
+      .theme-chatgpt .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-chatgpt .msg-row.other .bubble {
+        background: #f7f7f8;
+        color: #374151;
+        border-radius: 8px;
+      }
+      .theme-chatgpt .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-chatgpt .msg-row.me .bubble {
+        background: #10a37f;
+        color: #fff;
+        border-radius: 8px;
+      }
+
+      /* 14. Claude */
+      .theme-claude #capture-area {
+        background: #fdfaf5;
+      }
+      .theme-claude .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-claude .msg-row.other .bubble {
+        background: #f0eadd;
+        color: #3e3e3e;
+        border-radius: 12px;
+      }
+      .theme-claude .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-claude .msg-row.me .bubble {
+        background: #da7756;
+        color: #fff;
+        border-radius: 12px;
+      }
+
+      /* 15. Grok */
+      .theme-grok #capture-area {
+        background: #000000;
+      }
+      .theme-grok .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-grok .msg-row.other .bubble {
+        background: #1a1a2e;
+        color: #e0e0e0;
+        border-radius: 12px;
+        border: 1px solid #2a2a4a;
+      }
+      .theme-grok .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-grok .msg-row.me .bubble {
+        background: #f97316;
+        color: #fff;
+        border-radius: 12px;
+      }
+      .theme-grok .divider-line {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .theme-grok .divider-dot {
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      /* 16. 아이폰 메모 (Apple Notes) */
+      .theme-applenotes #capture-area {
+        background: #f7f5ef;
+      }
+      .theme-applenotes .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-applenotes .msg-row.other .bubble {
+        background: #ffffff;
+        color: #1c1c1e;
+        border-radius: 14px;
+        border: 1px solid #e5e5e5;
+      }
+      .theme-applenotes .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-applenotes .msg-row.me .bubble {
+        background: #fef3c7;
+        color: #1c1c1e;
+        border-radius: 14px;
+        border: 1px solid #f0dfa0;
+      }
+
+      /* 17. Evernote */
+      .theme-evernote #capture-area {
+        background: #f5f5f5;
+      }
+      .theme-evernote .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-evernote .msg-row.other .bubble {
+        background: #ffffff;
+        color: #333333;
+        border-radius: 8px;
+        border-left: 3px solid #00a82d;
+      }
+      .theme-evernote .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-evernote .msg-row.me .bubble {
+        background: #00a82d;
+        color: #ffffff;
+        border-radius: 8px;
+      }
+
+      /* 18. Notion */
+      .theme-notion #capture-area {
+        background: #ffffff;
+      }
+      .theme-notion .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-notion .msg-row.other .bubble {
+        background: #f7f6f3;
+        color: #37352f;
+        border-radius: 6px;
+        border: 1px solid #e9e9e7;
+      }
+      .theme-notion .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-notion .msg-row.me .bubble {
+        background: #37352f;
+        color: #ffffff;
+        border-radius: 6px;
+      }
+
+      /* 19. WordPress */
+      .theme-wordpress #capture-area {
+        background: #f0f0f0;
+      }
+      .theme-wordpress .msg-row.other {
+        align-items: flex-start;
+      }
+      .theme-wordpress .msg-row.other .bubble {
+        background: #ffffff;
+        color: #1e1e1e;
+        border-radius: 8px;
+        border: 1px solid #dcdcde;
+      }
+      .theme-wordpress .msg-row.me {
+        align-items: flex-end;
+      }
+      .theme-wordpress .msg-row.me .bubble {
+        background: #21759b;
+        color: #ffffff;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body class="theme-imessage">
+    <div class="editor-panel">
+      <div class="header-row">
+        <div class="title-group">
+          <button class="btn-bread" onclick="goHome()" title="홈으로 돌아가기">
+            🍞️
+          </button>
+          <h2>채팅 캡처기 <span class="ver-badge">V13</span></h2>
         </div>
-        <div class="control-group">
-            <h3>완전 삭제</h3>
-            <p style="font-size: 0.9rem; margin:0; text-align: left;">이미지에서 모든 메타데이터를 영구적으로 제거합니다.</p>
-            <button id="strip-btn" class="danger">🗑️ 메타데이터 완전 삭제</button>
+        <div class="header-actions">
+          <a
+            href="https://maeulo.github.io/maeulo/"
+            target="_blank"
+            title="채팅 로그 생성기 (by maeulo)"
+            class="btn-icon btn-angel"
+            style="
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              text-decoration: none;
+            "
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 36 36"
+              fill="none"
+            >
+              <!-- 후광 -->
+              <ellipse
+                cx="18"
+                cy="5"
+                rx="9"
+                ry="3"
+                fill="none"
+                stroke="#f6c90e"
+                stroke-width="2.2"
+              />
+              <!-- 얼굴 -->
+              <circle
+                cx="18"
+                cy="16"
+                r="9"
+                fill="#fde68a"
+                stroke="#f6c90e"
+                stroke-width="1.5"
+              />
+              <!-- 눈 -->
+              <ellipse cx="14.5" cy="15" rx="1.2" ry="1.5" fill="#5c3a1e" />
+              <ellipse cx="21.5" cy="15" rx="1.2" ry="1.5" fill="#5c3a1e" />
+              <!-- 미소 -->
+              <path
+                d="M14.5 19.5 Q18 22.5 21.5 19.5"
+                stroke="#c97b3a"
+                stroke-width="1.4"
+                fill="none"
+                stroke-linecap="round"
+              />
+              <!-- 날개 (왼) -->
+              <path
+                d="M9 20 Q2 16 3 24 Q6 28 11 25"
+                fill="#e0f2fe"
+                stroke="#bae6fd"
+                stroke-width="1.2"
+              />
+              <!-- 날개 (오) -->
+              <path
+                d="M27 20 Q34 16 33 24 Q30 28 25 25"
+                fill="#e0f2fe"
+                stroke="#bae6fd"
+                stroke-width="1.2"
+              />
+              <!-- 몸 -->
+              <path
+                d="M11 26 Q18 32 25 26"
+                fill="#fde68a"
+                stroke="#f6c90e"
+                stroke-width="1.2"
+              />
+            </svg>
+          </a>
+          <button onclick="resetData()" class="btn-small">전체 초기화</button>
+          <div class="longform-group">
+            <button class="btn-icon btn-longform" id="longform-btn" onclick="toggleLongform()" title="장문 모드 — 소설/노트 뷰">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="18" x2="16" y2="18"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
+
+      <div class="editor-hideable">
+        <label>🎨 테마 선택</label>
+        <select id="theme-select" onchange="changeTheme()">
+          <optgroup label="국민 메신저">
+            <option value="theme-kakao">카카오톡 (옐로우)</option>
+            <option value="theme-imessage">iMessage (블루)</option>
+            <option value="theme-line">LINE (연두)</option>
+            <option value="theme-telegram">Telegram (민트)</option>
+            <option value="theme-whatsapp">WhatsApp (연두)</option>
+          </optgroup>
+          <optgroup label="SNS / 커뮤니티">
+            <option value="theme-x">X (트위터) (블랙)</option>
+            <option value="theme-daum">Daum Cafe (레드)</option>
+            <option value="theme-reddit">Reddit (오렌지)</option>
+            <option value="theme-google">Google (파스텔)</option>
+            <option value="theme-slack">Slack (블루)</option>
+            <option value="theme-instagram">Instagram DM (그라데이션)</option>
+          </optgroup>
+          <optgroup label="AI 모델">
+            <option value="theme-gemini">Gemini (그라데이션)</option>
+            <option value="theme-chatgpt">ChatGPT (청록)</option>
+            <option value="theme-claude">Claude (베이지)</option>
+            <option value="theme-grok">Grok (오렌지)</option>
+          </optgroup>
+          <optgroup label="노트앱">
+            <option value="theme-applenotes">아이폰 메모</option>
+            <option value="theme-evernote">Evernote (그린)</option>
+            <option value="theme-notion">Notion (미니멀)</option>
+            <option value="theme-wordpress">WordPress (딥블루)</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="editor-hideable">
+        <label>치환 키워드</label>
+        <div class="helper-bar">
+          <button
+            onmousedown="event.preventDefault(); insertToFocused('{{user}}')"
+          >
+            + {{user}}
+          </button>
+          <button
+            onmousedown="event.preventDefault(); insertToFocused('{{char}}')"
+          >
+            + {{char}}
+          </button>
+          <button
+            onmousedown="
+              event.preventDefault();
+              insertToFocused('---');
+            "
+          >
+            + 구분선
+          </button>
+        </div>
+        <div class="keyword-group">
+          <div id="keyword-list"></div>
+          <button class="btn-small btn-add" onclick="addKeywordRow('', '')">
+            + 키워드 칸 추가
+          </button>
+        </div>
+      </div>
+
+      <!-- Collapsible Settings -->
+      <div class="editor-hideable">
+        <div class="collapsible-header" onclick="toggleCollapsible(this)">
+          <label style="cursor: pointer; margin-bottom: 0">⚙️ 세부 설정</label>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="collapsible-body collapsed" style="max-height: 500px">
+          <div class="settings-group" style="margin-top: 8px">
+            <div class="setting-row">
+              <label>폰트</label>
+              <select id="font-select" onchange="updateFont(this.value)">
+                <option
+                  value="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif"
+                >
+                  시스템 기본 (Apple)
+                </option>
+                <optgroup label="고딕 (산세리프)">
+                  <option value="'Nanum Gothic', sans-serif">나눔고딕</option>
+                  <option value="'Gothic A1', sans-serif">Gothic A1</option>
+                  <option value="'IBM Plex Sans KR', sans-serif">
+                    IBM Plex Sans KR
+                  </option>
+                  <option value="'Gowun Dodum', sans-serif">고운돋움</option>
+                </optgroup>
+                <optgroup label="명조 (세리프)">
+                  <option value="'Nanum Myeongjo', serif">나눔명조</option>
+                  <option value="'Noto Serif KR', serif">Noto Serif KR</option>
+                  <option value="'Gowun Batang', serif">고운바탕</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <div class="setting-row">
+              <label>폰트 크기</label>
+              <input
+                type="range"
+                min="12"
+                max="22"
+                value="15"
+                id="font-size-range"
+                oninput="updateFontSize(this.value)"
+              />
+              <span class="setting-value" id="font-size-val">15px</span>
+            </div>
+            <div class="setting-row">
+              <label>말풍선 너비</label>
+              <input
+                type="range"
+                min="60"
+                max="100"
+                value="90"
+                id="bubble-width-range"
+                oninput="updateBubbleWidth(this.value)"
+              />
+              <span class="setting-value" id="bubble-width-val">90%</span>
+            </div>
+            <div class="setting-row">
+              <label>캡처 패딩</label>
+              <input
+                type="range"
+                min="10"
+                max="60"
+                value="30"
+                id="capture-padding-range"
+                oninput="updateCapturePadding(this.value)"
+              />
+              <span class="setting-value" id="capture-padding-val">30px</span>
+            </div>
+
+            <hr
+              style="
+                border: none;
+                border-top: 1px solid var(--border);
+                margin: 4px 0;
+              "
+            />
+
+            <div class="toggle-row">
+              <label>"대사" 굵게</label>
+              <label class="toggle-switch">
+                <input
+                  type="checkbox"
+                  id="bold-toggle"
+                  checked
+                  onchange="render()"
+                />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <label>*기울임*</label>
+              <label class="toggle-switch">
+                <input
+                  type="checkbox"
+                  id="italic-toggle"
+                  checked
+                  onchange="render()"
+                />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="textarea-section">
+        <div class="textarea-header">
+          <label>대화 내용 (ㅏ:나 / ㅓ:상대)</label>
+          <button class="btn-expand" id="expand-btn" onclick="toggleExpand()">
+            <span id="expand-icon">⤢</span> <span id="expand-text">최대화</span>
+          </button>
+        </div>
+        <div class="syntax-hint editor-hideable">
+          <code>"대사"</code> → <b>굵게</b> &nbsp;|&nbsp;
+          <code>*기울임*</code> → <i>이탤릭</i> &nbsp;|&nbsp; <code>---</code> →
+          구분선
+        </div>
+        <textarea
+          id="chat-input"
+          spellcheck="false"
+          oninput="render()"
+          onfocus="handleFocus(this)"
+          placeholder='(예시 내용은 입력을 시작하면 사라집니다)&#13;&#10;&#13;&#10;ㅏ&#13;&#10;안녕하세요&#13;&#10;ㅓ&#13;&#10;반갑습니다&#13;&#10;---&#13;&#10;ㅏ&#13;&#10;"대사는 굵게", *이건 기울임*'
+        ></textarea>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn-main btn-save" onclick="saveImage()">
+          📸 이미지 저장
+        </button>
+      </div>
+    </div>
+
+    <div class="preview-panel">
+      <div class="longform-chips" id="longform-chips">
+        <div class="chip selected" id="chip-sepia"    title="세피아"     style="background:#f4efe6; box-shadow:inset 0 0 0 1.5px #c8b89a;" onclick="setLongformTheme('sepia')"></div>
+        <div class="chip"          id="chip-ivory"    title="아이보리"    style="background:#faf8f3; box-shadow:inset 0 0 0 1.5px #d4d0c8;" onclick="setLongformTheme('ivory')"></div>
+        <div class="chip"          id="chip-green"    title="그린 페이퍼"  style="background:#f0f4ee; box-shadow:inset 0 0 0 1.5px #b8c9b4;" onclick="setLongformTheme('green')"></div>
+        <div class="chip"          id="chip-rose"     title="로즈"        style="background:#fdf4f5; box-shadow:inset 0 0 0 1.5px #e8b4bc;" onclick="setLongformTheme('rose')"></div>
+        <div class="chip"          id="chip-stone"    title="스톤"        style="background:#f2f1ef; box-shadow:inset 0 0 0 1.5px #c4c1bc;" onclick="setLongformTheme('stone')"></div>
+        <div class="chip"          id="chip-sky"      title="스카이"      style="background:#f0f6ff; box-shadow:inset 0 0 0 1.5px #a8c4e8;" onclick="setLongformTheme('sky')"></div>
+        <div class="chip"          id="chip-lavender" title="라벤더"      style="background:#f5f3ff; box-shadow:inset 0 0 0 1.5px #b8a8e8;" onclick="setLongformTheme('lavender')"></div>
+      </div>
+      <div id="capture-area">
+        <div class="chat-content" id="chat-list"></div>
+      </div>
+    </div>
+
+    <script>
+      const EXAMPLE_TEXT = `ㅏ
+유저는 박박 우겨서 신부 수트를 입고 아주 편안하게 앉아 있었다.
+ㅓ
+문을 열자마자 마주한 풍경은 '수줍은 신부'와는 거리가 멀어도 한참 멀었다. 풍성한 드레스 자락 대신 날 선 바지 주름이, 다소곳하게 모은 손 대신 세상 편안하게 늘어진 자세가 시야를 가득 채운다.
+
+"드레스 코드가 바뀐 줄은 몰랐군요. 하객들에게 신랑이 두 명이라고 소개할 셈입니까?"
+
+성큼 다가가 그녀의 맞은편 소파 팔걸이에 삐딱하게 걸터앉으며, 위아래로 훑어보는 시선에 노골적인 평가를 담았다.
+ㅏ
+"눈이 달려있으면 제가 남자로 보이지는 않겠죠." 유저는 캐릭터의 눈동자를 올곧게 바라보며 피식 웃었다.
+ㅓ
+"시력은 양쪽 다 1.5니 걱정 마십시오. 다만 하객들이 신랑과 신부를 구분하는 데 1초 정도 더 걸릴 수는 있겠군요."
+
+자리에서 일어나 재킷 단추를 잠그며 턱짓으로 문을 가리켰다.
+
+"그럼 이동하죠. 입장할 시간입니다, 파트너."`;
+
+      const DEFAULT_KEYWORDS = [
+        { target: "유저", replace: "{{user}}" },
+        { target: "캐릭터", replace: "{{char}}" },
+      ];
+
+      let parsedBlocks = [];
+      let lastFocusedElem = null;
+
+      window.onload = function () {
+        loadData();
+        lastFocusedElem = document.getElementById("chat-input");
+      };
+
+      let longformMode = false;
+      let longformTheme = "sepia";
+
+      const LONGFORM_THEMES = {
+        sepia:    { outer:"#e8e0d0", page:"#f4efe6", shadow:"rgba(61,43,31,0.13)",  text:"#3d2b1f", meBg:"transparent", otherBg:"transparent", meLine:"rgba(61,43,31,0.32)"  },
+        ivory:    { outer:"#e8e7e2", page:"#faf8f3", shadow:"rgba(45,45,45,0.10)",  text:"#2d2d2d", meBg:"transparent", otherBg:"transparent", meLine:"rgba(45,45,45,0.28)"  },
+        green:    { outer:"#dde6db", page:"#f0f4ee", shadow:"rgba(45,58,46,0.11)",  text:"#2d3a2e", meBg:"transparent", otherBg:"transparent", meLine:"rgba(45,58,46,0.32)"  },
+        rose:     { outer:"#f0e4e6", page:"#fdf4f5", shadow:"rgba(74,32,40,0.10)",  text:"#4a2028", meBg:"transparent", otherBg:"transparent", meLine:"rgba(74,32,40,0.28)"  },
+        stone:    { outer:"#e2e0dd", page:"#f2f1ef", shadow:"rgba(44,44,44,0.10)",  text:"#2c2c2c", meBg:"transparent", otherBg:"transparent", meLine:"rgba(44,44,44,0.28)"  },
+        sky:      { outer:"#d8e8f8", page:"#f0f6ff", shadow:"rgba(30,58,95,0.10)",  text:"#1e3a5f", meBg:"transparent", otherBg:"transparent", meLine:"rgba(30,58,95,0.28)"  },
+        lavender: { outer:"#e4e0f8", page:"#f5f3ff", shadow:"rgba(45,27,105,0.10)", text:"#2d1b69", meBg:"transparent", otherBg:"transparent", meLine:"rgba(45,27,105,0.28)" },
+      };
+;
+
+      function setLongformTheme(name) {
+        longformTheme = name;
+        // 칩 selected 표시
+        ["sepia","ivory","green","rose","stone","sky","lavender"].forEach(t => {
+          document.getElementById("chip-"+t)?.classList.toggle("selected", t === name);
+        });
+        if (longformMode) render();
+        saveData();
+      }
+
+      function applyLongformThemeCSS() {
+        const t = LONGFORM_THEMES[longformTheme] || LONGFORM_THEMES.sepia;
+        const panel = document.querySelector(".preview-panel");
+        const capture = document.getElementById("capture-area");
+        if (!panel || !capture) return;
+        panel.style.backgroundColor = t.outer;
+        capture.style.background = t.page;
+        capture.style.boxShadow = `0 6px 32px ${t.shadow}`;
+      }
+
+      function resetLongformThemeCSS() {
+        const panel = document.querySelector(".preview-panel");
+        const capture = document.getElementById("capture-area");
+        if (panel)   panel.style.backgroundColor = "";
+        if (capture) { capture.style.background = ""; capture.style.boxShadow = ""; }
+      }
+
+      function toggleLongform() {
+        longformMode = !longformMode;
+        const btn = document.getElementById("longform-btn");
+        const chips = document.getElementById("longform-chips");
+        const panel = document.querySelector(".preview-panel");
+        if (longformMode) {
+          panel.classList.add("longform-mode");
+          btn.classList.add("active");
+          btn.title = "장문 모드 해제";
+          chips.classList.add("visible");
+          applyLongformThemeCSS();
+        } else {
+          panel.classList.remove("longform-mode");
+          btn.classList.remove("active");
+          btn.title = "장문 모드 — 소설/노트 뷰";
+          chips.classList.remove("visible");
+          resetLongformThemeCSS();
+        }
+        saveData();
+        render();
+      }
+
+      function goHome() {
+        window.location.href = "https://toastout.github.io/toast/";
+      }
+
+      function handleFocus(elem) {
+        setLastFocused(elem);
+        if (elem.value.trim() === EXAMPLE_TEXT.trim()) {
+          elem.value = "";
+          render();
+        }
+      }
+
+      function setLastFocused(elem) {
+        lastFocusedElem = elem;
+      }
+
+      function insertToFocused(text) {
+        if (lastFocusedElem) {
+          const start = lastFocusedElem.selectionStart;
+          const end = lastFocusedElem.selectionEnd;
+          const val = lastFocusedElem.value;
+          lastFocusedElem.value =
+            val.substring(0, start) + text + val.substring(end);
+          lastFocusedElem.selectionStart = lastFocusedElem.selectionEnd =
+            start + text.length;
+          lastFocusedElem.focus();
+          render();
+        } else {
+          alert("입력할 곳을 먼저 클릭해주세요.");
+        }
+      }
+
+      function toggleExpand() {
+        const panel = document.querySelector(".editor-panel");
+        const btn = document.getElementById("expand-btn");
+        const icon = document.getElementById("expand-icon");
+        const text = document.getElementById("expand-text");
+        const isExpanded = panel.classList.toggle("editor-expanded");
+        icon.textContent = isExpanded ? "⤡" : "⤢";
+        text.textContent = isExpanded ? "최소화" : "최대화";
+      }
+
+      function toggleCollapsible(header) {
+        const body = header.nextElementSibling;
+        const arrow = header.querySelector(".arrow");
+        body.classList.toggle("collapsed");
+        arrow.classList.toggle("open");
+      }
+
+      function updateFont(val) {
+        document
+          .getElementById("capture-area")
+          .style.setProperty("--bubble-font-family", val);
+        saveData();
+      }
+
+      function updateFontSize(val) {
+        document.getElementById("font-size-val").textContent = val + "px";
+        document
+          .getElementById("capture-area")
+          .style.setProperty("--bubble-font-size", val + "px");
+        saveData();
+      }
+
+      function updateBubbleWidth(val) {
+        document.getElementById("bubble-width-val").textContent = val + "%";
+        document
+          .getElementById("capture-area")
+          .style.setProperty("--bubble-max-width", val + "%");
+        saveData();
+      }
+
+      function updateCapturePadding(val) {
+        document.getElementById("capture-padding-val").textContent = val + "px";
+        document.getElementById("capture-area").style.padding =
+          val + "px " + Math.round(val * 0.67) + "px";
+        saveData();
+      }
+
+      function saveData() {
+        const data = {
+          text: document.getElementById("chat-input").value,
+          theme: document.getElementById("theme-select").value,
+          keywords: getKeywordsFromUI(),
+          font: document.getElementById("font-select").value,
+          fontSize: document.getElementById("font-size-range").value,
+          bubbleWidth: document.getElementById("bubble-width-range").value,
+          capturePadding: document.getElementById("capture-padding-range")
+            .value,
+          boldEnabled: document.getElementById("bold-toggle").checked,
+          italicEnabled: document.getElementById("italic-toggle").checked,
+          longformMode: longformMode,
+          longformTheme: longformTheme,
+        };
+        localStorage.setItem("novel_gen_v13", JSON.stringify(data));
+      }
+
+      function loadData() {
+        const saved = localStorage.getItem("novel_gen_v13");
+        if (saved) {
+          const data = JSON.parse(saved);
+          document.getElementById("chat-input").value =
+            data.text || EXAMPLE_TEXT;
+          document.getElementById("theme-select").value =
+            data.theme || "theme-imessage";
+
+          const savedKeywords = data.keywords || DEFAULT_KEYWORDS;
+          document.getElementById("keyword-list").innerHTML = "";
+          savedKeywords.forEach((k) => addKeywordRow(k.target, k.replace));
+
+          if (data.font) {
+            document.getElementById("font-select").value = data.font;
+            updateFont(data.font);
+          }
+          if (data.fontSize) {
+            document.getElementById("font-size-range").value = data.fontSize;
+            updateFontSize(data.fontSize);
+          }
+          if (data.bubbleWidth) {
+            document.getElementById("bubble-width-range").value =
+              data.bubbleWidth;
+            updateBubbleWidth(data.bubbleWidth);
+          }
+          if (data.capturePadding) {
+            document.getElementById("capture-padding-range").value =
+              data.capturePadding;
+            updateCapturePadding(data.capturePadding);
+          }
+          if (data.boldEnabled !== undefined)
+            document.getElementById("bold-toggle").checked = data.boldEnabled;
+          if (data.italicEnabled !== undefined)
+            document.getElementById("italic-toggle").checked =
+              data.italicEnabled;
+          if (data.longformTheme) { longformTheme = data.longformTheme; setLongformTheme(data.longformTheme); }
+          if (data.longformMode) { longformMode = false; toggleLongform(); }
+        } else {
+          document.getElementById("chat-input").value = EXAMPLE_TEXT;
+          DEFAULT_KEYWORDS.forEach((k) => addKeywordRow(k.target, k.replace));
+        }
+        changeTheme();
+        render();
+      }
+
+      function resetData() {
+        if (confirm("초기화 하시겠습니까?")) {
+          localStorage.removeItem("novel_gen_v13");
+          location.reload();
+        }
+      }
+
+      function addKeywordRow(target, replace) {
+        const div = document.createElement("div");
+        div.className = "keyword-row";
+        div.innerHTML = `
+          <input type="text" placeholder="대상 (예: 유저)" value="${target}" oninput="render()" onfocus="setLastFocused(this)">
+          <span style="color:#adb5bd;">→</span>
+          <input type="text" placeholder="변경 (예: {{user}})" value="${replace}" oninput="render()" onfocus="setLastFocused(this)">
+          <button class="btn-small btn-remove" onclick="removeRow(this)">X</button>
+        `;
+        document.getElementById("keyword-list").appendChild(div);
+      }
+
+      function removeRow(btn) {
+        btn.parentElement.remove();
+        render();
+      }
+
+      function getKeywordsFromUI() {
+        const rows = document.querySelectorAll(".keyword-row");
+        const list = [];
+        rows.forEach((row) => {
+          const inputs = row.querySelectorAll("input");
+          const t = inputs[0].value.trim();
+          const r = inputs[1].value.trim();
+          if (t) list.push({ target: t, replace: r });
+        });
+        return list;
+      }
+
+      function changeTheme() {
+        const theme = document.getElementById("theme-select").value;
+        [...document.body.classList].forEach((c) => {
+          if (c.startsWith("theme-")) document.body.classList.remove(c);
+        });
+        document.body.classList.add(theme);
+        saveData();
+        render();
+      }
+
+      function parseRawText(rawText) {
+        const lines = rawText.split("\n");
+        let blocks = [];
+        let currentSpeaker = "other";
+        let buffer = [];
+
+        lines.forEach((line) => {
+          const trimmed = line.trim();
+          if (trimmed === "ㅏ" || trimmed === "ㅓ") {
+            if (buffer.length > 0) {
+              blocks.push({
+                speaker: currentSpeaker,
+                content: buffer.join("\n"),
+              });
+              buffer = [];
+            }
+            currentSpeaker = trimmed === "ㅏ" ? "me" : "other";
+          } else if (trimmed === "---") {
+            if (buffer.length > 0) {
+              blocks.push({
+                speaker: currentSpeaker,
+                content: buffer.join("\n"),
+              });
+              buffer = [];
+            }
+            blocks.push({ speaker: "divider", content: "" });
+          } else {
+            if (buffer.length === 0 && trimmed === "") return;
+            buffer.push(line);
+          }
+        });
+        if (buffer.length > 0) {
+          blocks.push({ speaker: currentSpeaker, content: buffer.join("\n") });
+        }
+        return blocks;
+      }
+
+      function formatText(text) {
+        const boldOn = document.getElementById("bold-toggle").checked;
+        const italicOn = document.getElementById("italic-toggle").checked;
+
+        // 마크다운 파싱을 HTML 이스케이프 이전에 처리
+        // 단계 1: 대사/이탤릭 영역을 플레이스홀더로 치환
+        const spans = [];
+        function stash(html) {
+          const key = "\x00" + spans.length + "\x00";
+          spans.push(html);
+          return key;
+        }
+
+        if (boldOn) {
+          // "…" 큰따옴표 (straight)
+          text = text.replace(/"([^"]*?)"/g, (_, inner) =>
+            stash(
+              '<span class="dialogue">\u201C' +
+                inner.replace(/</g, "&lt;").replace(/>/g, "&gt;") +
+                "\u201D</span>",
+            ),
+          );
+          // "…" 곱슬 따옴표
+          text = text.replace(/\u201C([^\u201D]*?)\u201D/g, (_, inner) =>
+            stash(
+              '<span class="dialogue">\u201C' +
+                inner.replace(/</g, "&lt;").replace(/>/g, "&gt;") +
+                "\u201D</span>",
+            ),
+          );
+          text = text.replace(/「([^」]*?)」/g, (_, inner) =>
+            stash(
+              '<span class="dialogue">「' +
+                inner.replace(/</g, "&lt;").replace(/>/g, "&gt;") +
+                "」</span>",
+            ),
+          );
+          text = text.replace(/『([^』]*?)』/g, (_, inner) =>
+            stash(
+              '<span class="dialogue">『' +
+                inner.replace(/</g, "&lt;").replace(/>/g, "&gt;") +
+                "』</span>",
+            ),
+          );
+        }
+
+        if (italicOn) {
+          text = text.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, (_, inner) =>
+            stash(
+              '<span class="italic-text">' +
+                inner.replace(/</g, "&lt;").replace(/>/g, "&gt;") +
+                "</span>",
+            ),
+          );
+        }
+
+        // 단계 2: 플레이스홀더 밖의 일반 텍스트만 이스케이프
+        text = text
+          .split("\x00")
+          .map((seg, i) => {
+            if (i % 2 === 0) {
+              // 플레이스홀더 사이의 일반 텍스트
+              return seg.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            } else {
+              // 숫자 인덱스 부분 → 저장된 span으로 교체
+              return spans[parseInt(seg)];
+            }
+          })
+          .join("");
+
+        return text;
+      }
+
+      function render() {
+        saveData();
+        const rawInput = document.getElementById("chat-input").value;
+        parsedBlocks = parseRawText(rawInput);
+
+        const chatList = document.getElementById("chat-list");
+        chatList.innerHTML = "";
+
+        const keywords = getKeywordsFromUI();
+
+        parsedBlocks.forEach((block, index) => {
+          if (block.speaker === "divider") {
+            const divRow = document.createElement("div");
+            divRow.className = "divider-row";
+            divRow.innerHTML = `<div class="divider-line"></div><div class="divider-dot"></div><div class="divider-dot"></div><div class="divider-dot"></div><div class="divider-line"></div>`;
+            chatList.appendChild(divRow);
+            return;
+          }
+
+          let displayText = block.content;
+          keywords.forEach((k) => {
+            if (k.target && k.replace)
+              displayText = displayText.replaceAll(k.target, k.replace);
+          });
+
+          displayText = formatText(displayText);
+
+          const row = document.createElement("div");
+          const isMe = block.speaker === "me";
+          row.className = isMe ? "msg-row me" : "msg-row other";
+
+          const isLongform = document.querySelector(".preview-panel")?.classList.contains("longform-mode");
+          if (isLongform) {
+            applyLongformThemeCSS();
+            row.onclick = () => toggleSpeaker(index);
+            const t = LONGFORM_THEMES[longformTheme] || LONGFORM_THEMES.sepia;
+            const bubbleStyle = [
+              "border:none",
+              "box-shadow:none",
+              "max-width:100%",
+              "margin-bottom:0.8em",
+              "line-height:1.9",
+              "font-size:var(--bubble-font-size,15px)",
+              "font-weight:400",
+              "display:block",
+              "background:transparent",
+              `color:${t.text}`,
+              isMe
+                ? `border-left:2px solid ${t.meLine};padding:2px 0 2px 14px;text-indent:0`
+                : "padding:2px 0;text-indent:1em",
+            ].join(";");
+            row.innerHTML = `<div class="bubble" style="${bubbleStyle}">${displayText}</div>`;
+          } else {
+            row.onclick = () => toggleSpeaker(index);
+            row.innerHTML = `<div class="bubble">${displayText}</div>`;
+          }
+
+          chatList.appendChild(row);
+        });
+      }
+
+      function toggleSpeaker(index) {
+        if (!parsedBlocks[index] || parsedBlocks[index].speaker === "divider")
+          return;
+        parsedBlocks[index].speaker =
+          parsedBlocks[index].speaker === "me" ? "other" : "me";
+
+        let newText = "";
+        parsedBlocks.forEach((block) => {
+          if (block.speaker === "divider") {
+            newText += "---\n";
+          } else {
+            newText +=
+              (block.speaker === "me" ? "ㅏ\n" : "ㅓ\n") + block.content + "\n";
+          }
+        });
+
+        document.getElementById("chat-input").value = newText.trim();
+        render();
+      }
+
+      function saveImage() {
+        const captureArea = document.getElementById("capture-area");
+        window.scrollTo(0, 0);
+        const style = window.getComputedStyle(captureArea);
+
+        html2canvas(captureArea, {
+          scale: 2,
+          backgroundColor: style.backgroundColor,
+          useCORS: true,
+        }).then((canvas) => {
+          const imgData = canvas.toDataURL("image/png");
+          const isIOS =
+            /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+          if (isIOS) {
+            // iOS: 인페이지 모달로 표시 (팝업 차단 우회)
+            const modal = document.getElementById("save-modal");
+            const modalImg = document.getElementById("save-modal-img");
+            modalImg.src = imgData;
+            modal.style.display = "flex";
+          } else {
+            // 안드로이드/데스크톱: 직접 다운로드
+            const link = document.createElement("a");
+            link.download = "novel_v13.png";
+            link.href = imgData;
+            link.click();
+          }
+        });
+      }
+
+      function closeSaveModal(e) {
+        if (!e || e.target === document.getElementById("save-modal")) {
+          const modal = document.getElementById("save-modal");
+          modal.style.display = "none";
+          document.getElementById("save-modal-img").src = "";
+        }
+      }
+    </script>
+
+  <!-- 이미지 저장 모달 -->
+  <div id="save-modal" onclick="closeSaveModal(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:9999;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px;box-sizing:border-box;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+    <div onclick="event.stopPropagation()" style="background:#fff;border-radius:16px;padding:20px;max-width:360px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.3);text-align:center;margin:auto;position:relative;">
+      <button onclick="closeSaveModal()" style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;border:none;background:rgba(0,0,0,0.1);color:#334155;font-size:1.1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
+      <p style="margin:0 0 6px;font-size:0.85rem;color:#64748b;font-weight:600;">이미지를 길게 눌러 저장하세요</p>
+      <p style="margin:0 0 14px;font-size:0.78rem;color:#94a3b8;">iOS: 사진 앱에 저장 &nbsp;·&nbsp; 안드로이드: 이미지 저장</p>
+      <img id="save-modal-img" src="" alt="Generated Log" style="max-width:100%;max-height:70vh;object-fit:contain;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.15);display:block;margin:0 auto 16px;">
+      <button onclick="closeSaveModal()" style="width:100%;padding:10px;background:#334155;color:#fff;border:none;border-radius:10px;font-size:0.9rem;font-weight:600;cursor:pointer;">닫기</button>
     </div>
   </div>
-
-<script>
-// --- DOM Elements ---
-const uploadBox = document.getElementById('upload-box');
-const fileInput = document.getElementById('file-input');
-const uploadText = document.getElementById('upload-text');
-const imagePreviewContainer = document.getElementById('image-preview-container');
-const resultArea = document.getElementById('result-area');
-const metadataDisplay = document.getElementById('metadata-display');
-const newMetadataInput = document.getElementById('new-metadata');
-const stripBtn = document.getElementById('strip-btn');
-const overwriteBtn = document.getElementById('overwrite-btn');
-const watermarkBtn = document.getElementById('watermark-btn');
-
-let originalImageData = null;
-let originalFileName = 'cleaned_image.png';
-
-// --- UI Interaction ---
-uploadBox.addEventListener('click', () => fileInput.click());
-['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-  uploadBox.addEventListener(eventName, preventDefaults, false);
-});
-['dragenter', 'dragover'].forEach(eventName => {
-  uploadBox.addEventListener(eventName, () => uploadBox.classList.add('dragover'), false);
-});
-['dragleave', 'drop'].forEach(eventName => {
-  uploadBox.addEventListener(eventName, () => uploadBox.classList.remove('dragover'), false);
-});
-uploadBox.addEventListener('drop', handleDrop, false);
-fileInput.addEventListener('change', handleFileSelect);
-
-stripBtn.addEventListener('click', () => processImage('strip'));
-overwriteBtn.addEventListener('click', () => processImage('overwrite'));
-watermarkBtn.addEventListener('click', () => processImage('watermark'));
-
-function preventDefaults(e) {
-  e.preventDefault();
-  e.stopPropagation();
-}
-
-function handleDrop(e) {
-  let dt = e.dataTransfer;
-  let file = dt.files[0];
-  handleFile(file);
-}
-
-function handleFileSelect(e) {
-  let file = e.target.files[0];
-  handleFile(file);
-}
-
-// --- Main Logic ---
-function handleFile(file) {
-  if (!file || !file.type.startsWith('image/png')) {
-    alert('PNG 이미지만 지원됩니다.');
-    return;
-  }
-  
-  originalFileName = file.name;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    originalImageData = e.target.result;
-    
-    // Display image preview
-    uploadText.style.display = 'none';
-    imagePreviewContainer.innerHTML = `<img id="image-preview" src="${originalImageData}" alt="Preview">`;
-
-    // Extract and display metadata
-    try {
-      const metadata = extractMetadata(new Uint8Array(originalImageData));
-      metadataDisplay.textContent = metadata ? JSON.stringify(metadata, null, 2) : '메타데이터를 찾을 수 없습니다.';
-    } catch (error) {
-       metadataDisplay.textContent = `메타데이터 분석 중 오류 발생: ${error.message}`;
-    }
-    
-    resultArea.style.display = 'block';
-  };
-  reader.readAsArrayBuffer(file);
-}
-
-function extractMetadata(bytes) {
-  // NovelAI metadata is stored in tEXt chunks, typically "Title", "Description", "Software", "Source", "Comment"
-  // We'll look for the "Description" and "Comment" chunks as they usually contain the prompt data.
-  let offset = 8; // Skip PNG signature
-  let foundMetadata = {};
-
-  while (offset < bytes.length) {
-    const length = (bytes[offset] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3];
-    const type = String.fromCharCode(bytes[offset + 4], bytes[offset + 5], bytes[offset + 6], bytes[offset + 7]);
-    
-    if (type === 'tEXt') {
-      const chunkData = bytes.subarray(offset + 8, offset + 8 + length);
-      const nullSeparatorIndex = chunkData.indexOf(0);
-      const keyword = new TextDecoder('latin1').decode(chunkData.subarray(0, nullSeparatorIndex));
-      const text = new TextDecoder('latin1').decode(chunkData.subarray(nullSeparatorIndex + 1));
-      
-      // We are primarily interested in these keys from NovelAI
-      if (['Description', 'Comment'].includes(keyword)) {
-         foundMetadata[keyword] = text;
-      }
-    }
-    
-    if (type === 'IEND') {
-      break;
-    }
-    
-    offset += 12 + length; // length + type + crc
-  }
-  
-  // Try to parse JSON data if present
-  if (foundMetadata.Comment) {
-      try { return JSON.parse(foundMetadata.Comment); } catch (e) { /* Not a JSON, return as is */ }
-  }
-  if (foundMetadata.Description) {
-      return { Prompt: foundMetadata.Description };
-  }
-
-  return Object.keys(foundMetadata).length > 0 ? foundMetadata : null;
-}
-
-
-function processImage(mode) {
-    const newMetadataText = newMetadataInput.value.trim();
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = document.getElementById('image-preview');
-
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    ctx.drawImage(img, 0, 0);
-
-    if (mode === 'watermark' && newMetadataText) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-        ctx.font = '16px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        
-        // Create a pattern
-        for (let y = 0; y < canvas.height; y += 60) {
-            for (let x = 0; x < canvas.width; x += 150) {
-                ctx.save();
-                ctx.translate(x, y);
-                ctx.rotate(-Math.PI / 12);
-                ctx.fillText(newMetadataText, 0, 0);
-                ctx.restore();
-            }
-        }
-    }
-
-    // Export canvas to Blob without metadata
-    canvas.toBlob(async (blob) => {
-        let newBlob = blob;
-        if (mode === 'overwrite' && newMetadataText) {
-             // To overwrite, we need to manipulate PNG chunks, which is complex in browser JS.
-             // A simpler approach for the user is to just download the clean image
-             // and let them know the metadata is stripped. True chunk writing requires a server or heavy library.
-             // For this version, we will just strip metadata and inform the user.
-             alert('브라우저 환경에서는 메타데이터를 직접 덮어쓰기 어렵습니다. 대신 메타데이터가 제거된 이미지를 다운로드합니다. 워터마크 기능을 사용해 출처를 남기는 것을 권장합니다.');
-        }
-
-        downloadBlob(newBlob, `cleaned_${originalFileName}`);
-    }, 'image/png');
-}
-
-
-function downloadBlob(blob, filename) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-}
-
-
-// --- Dark Mode ---
-document.getElementById('toggleDarkBtn').addEventListener('click', () => {
-    document.body.classList.toggle('dark');
-    localStorage.setItem('metadata_cleaner_darkmode', document.body.classList.contains('dark'));
-});
-
-window.onload = () => {
-    if (localStorage.getItem('metadata_cleaner_darkmode') === 'true') {
-        document.body.classList.add('dark');
-    }
-};
-
-</script>
-</body>
+  </body>
 </html>
